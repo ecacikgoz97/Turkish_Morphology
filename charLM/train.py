@@ -1,10 +1,8 @@
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch import optim
-
 import numpy as np
 import random
-
 from test import test
 from common.utils import *
 
@@ -29,6 +27,7 @@ def train(data, args):
             args.model.zero_grad()
             # (batchsize, t)
             surf = trnbatches[idx]
+
             loss, _acc, _ = args.model(surf)
             batch_loss = loss.sum() #mean(dim=-1)
             batch_loss.backward()
