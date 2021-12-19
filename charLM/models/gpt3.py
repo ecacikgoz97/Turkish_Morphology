@@ -45,14 +45,16 @@ class Decoder(nn.Module):
 
     def forward(self, x):
         res1 = x
+        x = self.layer_norm1(x)
         x = self.MH_attention(x)
         x = x + res1
-        x = self.layer_norm1(x)
+
 
         res2 = x
+        x = self.layer_norm2(x)
         x = self.feed_forward(x)
         x = x + res2
-        x = self.layer_norm2(x)
+
         return x
 
 
@@ -66,40 +68,51 @@ class GPT3(nn.Module):
         self.decoders = nn.Sequential(*[Decoder(embed_dim=embed_dim, num_heads=num_heads, block_size=block_size, attention_dropout_rate=attention_dropout_rate, residual_dropout_rate=residual_dropout_rate, expand_ratio=expand_ratio) for layer in range(num_layers)])
         self.layer_norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, len(vocab.word2id), bias=False)
-        vocab_mask = torch.ones(len(vocab.word2id))
-        self.loss = nn.CrossEntropyLoss(weight=vocab_mask, reduce=False, ignore_index=0)
+        #vocab_mask = torch.ones(len(vocab.word2id))
+        #self.loss = nn.CrossEntropyLoss(weight=vocab_mask, reduce=False, ignore_index=0)
+        self.apply(self._init_weights)
+
+    def _init_weights(self, module):
+        if isinstance(module, (nn.Linear, nn.Embedding)):
+            module.weight.data.normal_(mean=0.0, std=0.02)
+            if isinstance(module, nn.Linear) and module.bias is not None:
+                module.bias.data.zero_()
+        elif isinstance(module, nn.LayerNorm):
+            module.bias.data.zero_()
+            module.weight.data.fill_(1.0)
+
 
     def forward(self, x):
 
-        print(f"1) x: {x.shape}")
+        #print(f"1) x: {x.shape}")
         src = x[:, :-1]  # remove end symbol
         tgt = x[:, 1:]  # remove start symbol
         b, t = src.size()
-        print(f"2) src: {src.shape} and tgt: {tgt.shape}")
+        #print(f"2) src: {src.shape} and tgt: {tgt.shape}")
 
         # forward the GPT model
 
         token_embeddings = self.token_embedding(src)  # each index maps to a (learnable) vector
-        print(f"3) word_embed: {token_embeddings.shape}")
+        #print(f"3) word_embed: {token_embeddings.shape}")
         position_embeddings = self.position_embedding[:, :t, :]  # each position maps to a (learnable) vector
-        print(f"4) position_embeddings: {position_embeddings.shape}")
+        #print(f"4) position_embeddings: {position_embeddings.shape}")
         x = self.embedding_dropout(token_embeddings + position_embeddings)
-        print(f"5) embedding_dropout: {x.shape}")
+        #print(f"5) embedding_dropout: {x.shape}")
         x = self.decoders(x)
-        print(f"6) decoders: {x.shape}")
+        #print(f"6) decoders: {x.shape}")
         x = self.layer_norm(x)
-        print(f"7) layer_norm: {x.shape}")
+        #print(f"7) layer_norm: {x.shape}")
         logits = self.head(x)
-        print(f"8) logits: {logits.shape}")
+        #print(f"8) logits: {logits.shape}")
 
         _tgt = tgt.contiguous().view(-1)
-        print(f"9) _tgt: {_tgt.shape}")
-        _output_logits = logits.view(-1, logits.size(2))
-        print(f"10) _output_logits: {_output_logits.shape}")
+        #print(f"9) _tgt: {_tgt.shape}")
+        _output_logits = logits.view(-1, logits.size(-1))
+        #print(f"10) _output_logits: {_output_logits.shape}")
         # if we are given some desired targets also calculate the loss
         #loss = F.cross_entropy(logits.view(-1, logits.size(-1)), tgt.view(-1))
-        loss = self.loss(_output_logits, _tgt)
-        print(f"11) loss: {loss.shape}")
+        loss = F.cross_entropy(_output_logits, _tgt)
+        #print(f"11) loss: {loss.shape}")
 
         return loss, self.accuracy(logits, tgt), logits
 
