@@ -26,7 +26,8 @@ args.trndata = '/home/emrecan/Desktop/NLP/Turkish_Morphology/charLM/data/surf.un
 args.valdata = '/home/emrecan/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt'
 args.tstdata = args.valdata
 args.surface_vocab_file = args.trndata
-args.maxtrnsize = 57769; args.maxvalsize = 10000; args.maxtstsize = 10000
+#args.maxtrnsize = 57769; args.maxvalsize = 10000; args.maxtstsize = 10000
+args.maxtrnsize = 100; args.maxvalsize = 50; args.maxtstsize = 50
 rawdata, batches, vocab = build_data(args)
 trndata, vlddata, tstdata = rawdata
 args.trnsize , args.valsize, args.tstsize = len(trndata), len(vlddata), len(trndata)
@@ -35,15 +36,16 @@ args.trnsize , args.valsize, args.tstsize = len(trndata), len(vlddata), len(trnd
 args.mname = 'charlm'
 model_init = uniform_initializer(0.01)
 emb_init = uniform_initializer(0.1)
-embed_dim= 64; args.nh = 350
+embed_dim= 512; args.nh = 350
 args.enc_dropout_in = 0.2; args.enc_dropout_out = 0.3
 args.model = GPT3(vocab=vocab,
-                  num_layers=3,
+                  num_layers=8,
                   embed_dim=embed_dim,
                   num_heads=8,
                   block_size=128,
                   embedding_dropout_rate=0.1, attention_dropout_rate=0.1, residual_dropout_rate=0.1,
                   expand_ratio=4)
+#print(args.model)
 args.model.to(args.device)
 
 # logging

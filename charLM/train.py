@@ -1,6 +1,7 @@
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch import optim
+from models.gpt3 import GPT3
 import numpy as np
 import random
 from test import test
@@ -8,7 +9,8 @@ from common.utils import *
 
 def train(data, args):
     trnbatches, valbatches, tstbatches = data
-    opt = optim.Adam(filter(lambda p: p.requires_grad, args.model.parameters()), lr=args.lr)
+    #opt = optim.Adam(filter(lambda p: p.requires_grad, args.model.parameters()), lr=args.lr)
+    opt = torch.optim.AdamW(args.model.parameters(), lr=args.lr, betas=(0.9, 0.95))
     scheduler = ReduceLROnPlateau(opt, 'min', verbose=1, factor=0.5)
     for name, prm in args.model.named_parameters():
         args.logger.write('\n'+name+', '+str(prm.shape) + ': '+ str(prm.requires_grad))
@@ -68,5 +70,5 @@ def train(data, args):
             best_ppl = ppl
             torch.save(args.model.state_dict(), args.save_path)
         args.model.train()
-    plot_curves(args.task, args.bmodel, args.fig, args.axs[0], trn_loss_values, val_loss_values, args.plt_style, 'loss')
-    plot_curves(args.task, args.bmodel, args.fig, args.axs[1], trn_acc_values,  val_acc_values,  args.plt_style, 'acc')
+    plot_curves(args.task, args.model, args.fig, args.axs[0], trn_loss_values, val_loss_values, args.plt_style, 'loss')
+    plot_curves(args.task, args.model, args.fig, args.axs[1], trn_acc_values,  val_acc_values,  args.plt_style, 'acc')
