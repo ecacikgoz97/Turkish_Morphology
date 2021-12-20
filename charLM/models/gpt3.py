@@ -49,7 +49,6 @@ class Decoder(nn.Module):
         x = self.MH_attention(x)
         x = x + res1
 
-
         res2 = x
         x = self.layer_norm2(x)
         x = self.feed_forward(x)
@@ -68,8 +67,6 @@ class GPT3(nn.Module):
         self.decoders = nn.Sequential(*[Decoder(embed_dim=embed_dim, num_heads=num_heads, block_size=block_size, attention_dropout_rate=attention_dropout_rate, residual_dropout_rate=residual_dropout_rate, expand_ratio=expand_ratio) for layer in range(num_layers)])
         self.layer_norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, len(vocab.word2id), bias=False)
-        #vocab_mask = torch.ones(len(vocab.word2id))
-        #self.loss = nn.CrossEntropyLoss(weight=vocab_mask, reduce=False, ignore_index=0)
         self.apply(self._init_weights)
 
     def _init_weights(self, module):
@@ -84,6 +81,7 @@ class GPT3(nn.Module):
 
     def forward(self, x):
 
+        # pre-process
         #print(f"1) x: {x.shape}")
         src = x[:, :-1]  # remove end symbol
         tgt = x[:, 1:]  # remove start symbol
@@ -91,10 +89,9 @@ class GPT3(nn.Module):
         #print(f"2) src: {src.shape} and tgt: {tgt.shape}")
 
         # forward the GPT model
-
-        token_embeddings = self.token_embedding(src)  # each index maps to a (learnable) vector
+        token_embeddings = self.token_embedding(src)  # each index maps to a learnable vector
         #print(f"3) word_embed: {token_embeddings.shape}")
-        position_embeddings = self.position_embedding[:, :t, :]  # each position maps to a (learnable) vector
+        position_embeddings = self.position_embedding[:, :t, :]  # each position maps to a learnable vector
         #print(f"4) position_embeddings: {position_embeddings.shape}")
         x = self.embedding_dropout(token_embeddings + position_embeddings)
         #print(f"5) embedding_dropout: {x.shape}")
@@ -109,13 +106,11 @@ class GPT3(nn.Module):
         #print(f"9) _tgt: {_tgt.shape}")
         _output_logits = logits.view(-1, logits.size(-1))
         #print(f"10) _output_logits: {_output_logits.shape}")
-        # if we are given some desired targets also calculate the loss
-        #loss = F.cross_entropy(logits.view(-1, logits.size(-1)), tgt.view(-1))
+        # calculate the loss
         loss = F.cross_entropy(_output_logits, _tgt)
         #print(f"11) loss: {loss.shape}")
 
         return loss, self.accuracy(logits, tgt), logits
-
 
 
     def accuracy(self, output_logits, targets):
