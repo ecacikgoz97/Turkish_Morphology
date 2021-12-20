@@ -5,8 +5,8 @@ def test(batches, mode, args):
     epoch_loss = 0; epoch_acc = 0; epoch_error = 0; epoch_num_tokens = 0
     epoch_wrong_predictions = [];
     epoch_correct_predictions = [];
-    dsize = len(batches)
-    indices = list(range(dsize))
+    numbatches = len(batches)
+    indices = list(range(numbatches))
     for i, idx in enumerate(indices):
         # (batchsize, t)
         surf = batches[idx]
@@ -20,7 +20,7 @@ def test(batches, mode, args):
         epoch_wrong_predictions += wrong_predictions
         epoch_correct_predictions += correct_predictions
 
-    nll = epoch_loss / args.valsize
+    nll = epoch_loss / numbatches
     ppl = np.exp(epoch_loss / epoch_num_tokens)
     acc = epoch_acc / epoch_num_tokens
     args.logger.write('%s --- avg_loss: %.4f, ppl: %.4f, acc: %.4f  \n' % (mode, nll,  ppl, acc))
