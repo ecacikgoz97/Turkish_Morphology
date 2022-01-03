@@ -7,18 +7,24 @@ from common.utils import *
 from data import build_data
 matplotlib.use('Agg')
 
-######## DON'T FORGET TO CHANGE THIS !!! ########
-logger_file_name = 'deneme1'
+
+#### DON'T FORGET TO CHANGE THIS !!! ####
+logger_file_name = 'experiment1'              # Add ExpNUMBER !!!         
+logger_folder_name = 'EXPERIMENTS/exp1'       # Add ExpNUMBER !!!
+#########################################
+
 
 # Loggers
-if not os.path.exists('Transformer_Loggers'):
-    os.mkdir('Transformer_Loggers')
+if not os.path.exists(logger_folder_name):
+    os.mkdir(logger_folder_name)
+    
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s | | %(levelname)s | | %(message)s')
 
-logger_file_name = os.path.join('Transformer_Loggers', logger_file_name)
+
+logger_file_name = os.path.join(logger_folder_name, logger_file_name)
 file_handler = logging.FileHandler(logger_file_name,'w')
 file_handler.setFormatter(formatter)
 
@@ -80,7 +86,7 @@ args.model = GPT3(vocab=vocab,
 args.model.to(args.device)
 
 args.opt = optim.AdamW(args.model.parameters(), lr=args.lr, betas=(0.9, 0.95))
-logger.info(f"> Number of parameters {len(torch.nn.utils.parameters_to_vector(args.model.parameters()))}")
+logger.info(f"==> Number of parameters {len(torch.nn.utils.parameters_to_vector(args.model.parameters()))}")
 logger.info(f"Number of Decoder Layers: {num_layers}")
 logger.info(f"Embedding Dimension: {embed_dim}")
 logger.info(f"Number of heads in Attention: {num_heads}")
@@ -92,7 +98,7 @@ logger.info(f"Expand ratio rate: {expand_ratio}")
 
 # logging Results
 modelname = args.mname+'/results/'+str(len(trndata))+'_instances'
-args.results_file_name = os.path.join('Transformer_Loggers', modelname)
+args.results_file_name = os.path.join(logger_folder_name, modelname)
 try:
     os.makedirs(args.results_file_name)
     print("Directory " , args.results_file_name,  " Created ")
