@@ -9,8 +9,8 @@ matplotlib.use('Agg')
 
 
 #### DON'T FORGET TO CHANGE THIS !!! ####
-logger_file_name = 'experiment1'              # Add ExpNUMBER !!!         
-logger_folder_name = 'EXPERIMENTS/exp1'       # Add ExpNUMBER !!!
+logger_file_name = 'experiment0'              # Add ExpNUMBER !!!         
+logger_folder_name = 'EXPERIMENTS/exp0'       # Add ExpNUMBER !!!
 #########################################
 
 
@@ -36,26 +36,30 @@ parser = argparse.ArgumentParser(description='')
 args = parser.parse_args()
 
 # training info
-args.batchsize = 128
-args.epochs = 100
+args.batchsize = 32
+args.epochs = 10
 args.opt= 'WAdam'
 args.lr = 0.001
+args.weight_decay = 0.01
 args.task = 'lm'
 args.seq_to_no_pad = 'surface'
 args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 logger.info("Using device: {}".format(str(args.device)))
 logger.info("Training on '{}' is starting".format(args.seq_to_no_pad))
 logger.info("We now give the hyperparameters")
-logger.info("Number of Epochs : {}".format(args.epochs))
-logger.info("Batch Size : {}".format(args.batchsize))
-logger.info("Learning rate : {}".format(args.lr))
+logger.info("Number of Epochs: {}".format(args.epochs))
+logger.info("Batch Size: {}".format(args.batchsize))
+logger.info("Learning rate: {}".format(args.lr))
+logger.info("Weight Decay: {}".format(args.weight_decay))
 
 
 # data
 #args.trndata = '/home/emrecan/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Linux
 #args.valdata = '/home/emrecan/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Linux
-args.trndata = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Mac
-args.valdata = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Mac
+#args.trndata = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Mac
+#args.valdata = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Mac
+args.trndata = '/kuacc/users/eacikgoz17/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Cluster
+args.valdata = '/kuacc/users/eacikgoz17/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Cluster
 args.tstdata = args.valdata
 args.surface_vocab_file = args.trndata
 #args.maxtrnsize = 57769; args.maxvalsize = 10000; args.maxtstsize = 10000
@@ -66,13 +70,13 @@ args.trnsize , args.valsize, args.tstsize = len(trndata), len(vlddata), len(trnd
 
 # model
 args.mname = 'charlm_miniGPT'
-num_layers=5
-embed_dim=64
+num_layers=3
+embed_dim=128
 num_heads=16
 block_size=128
-embedding_dropout_rate=0.1 
-attention_dropout_rate=0.1
-residual_dropout_rate=0.1
+embedding_dropout_rate=0.15 
+attention_dropout_rate=0.15
+residual_dropout_rate=0.15
 expand_ratio = 4
 args.model = GPT3(vocab=vocab,
                   num_layers=num_layers,
@@ -85,7 +89,7 @@ args.model = GPT3(vocab=vocab,
                   expand_ratio=expand_ratio)
 args.model.to(args.device)
 
-args.opt = optim.AdamW(args.model.parameters(), lr=args.lr, betas=(0.9, 0.95))
+args.opt = optim.AdamW(args.model.parameters(), lr=args.lr, betas=(0.9, 0.95), weight_decay=args.weight_decay)
 logger.info(f"==> Number of parameters {len(torch.nn.utils.parameters_to_vector(args.model.parameters()))}")
 logger.info(f"Number of Decoder Layers: {num_layers}")
 logger.info(f"Embedding Dimension: {embed_dim}")
