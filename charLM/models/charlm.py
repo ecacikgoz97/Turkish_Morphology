@@ -8,7 +8,7 @@
         7) output_logits.shape: torch.Size([128, 14, 39])
         8) _tgt.shape: torch.Size([1792])
         9) _output_logits.shape: torch.Size([1792, 39])
-
+        "[B, T, C]: for each T, C number of scores"
 
         1) x.shape: torch.Size([128, 6])
         2) src.shape: torch.Size([128, 5])

@@ -1,34 +1,51 @@
+"""
+##### Output Example #####
+Lenght of batch: torch.Size([32, 6])
+len vocab.word2id: 39
+1) x: torch.Size([32, 6])
+2) src: torch.Size([32, 5]) and tgt: torch.Size([32, 5])
+3) word_embed: torch.Size([32, 5, 128])
+4) position_embeddings: torch.Size([1, 5, 128])
+5) embedding_dropout: torch.Size([32, 5, 128])
+6) Decoder Input: torch.Size([32, 5, 128])
+7) Decoder Layer Norm1: torch.Size([32, 5, 128])
+8) Multi-Head Attention Input: torch.Size([32, 5, 128])
+9) K: torch.Size([32, 16, 5, 8]), Q: torch.Size([32, 16, 5, 8]), V: torch.Size([32, 16, 5, 8])
+10) Attention: torch.Size([32, 16, 5, 5])
+tensor([[ 0.6997,    -inf,    -inf,    -inf,    -inf],
+        [-1.5819, -0.3455,    -inf,    -inf,    -inf],
+        [ 0.2606, -0.6503,  0.6313,    -inf,    -inf],
+        [-1.2693, -0.6447,  0.4583, -0.2119,    -inf],
+        [ 0.6234, -0.1545,  0.2546, -0.0763, -0.2299]],
+       grad_fn=<SelectBackward0>)
+11) Attention: torch.Size([32, 16, 5, 5])
+tensor([[1.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+        [0.2251, 0.7749, 0.0000, 0.0000, 0.0000],
+        [0.3508, 0.1411, 0.5082, 0.0000, 0.0000],
+        [0.0879, 0.1642, 0.4948, 0.2531, 0.0000],
+        [0.3253, 0.1494, 0.2250, 0.1616, 0.1386]], grad_fn=<SelectBackward0>)
+12) Softmax Attention: torch.Size([32, 16, 5, 5])
+13) Attention: torch.Size([32, 16, 5, 5])
+14) Attention Output: torch.Size([32, 16, 5, 8])
+15) Multi-Head Attention Output: torch.Size([32, 5, 128])
+16) Full Connected: torch.Size([32, 5, 128])
+17) Dropout: torch.Size([32, 5, 128])
+18) Multi-Head Layer Output: torch.Size([32, 5, 128])
+19) Decoder Layer Norm2: torch.Size([32, 5, 128])
+20) Decoder Layer Output: torch.Size([32, 5, 128])
+21) Decoder Layer Output: torch.Size([32, 5, 128])
+22) layer_norm: torch.Size([32, 5, 128])
+23) logits: torch.Size([32, 5, 39])
+24) _tgt: torch.Size([160])
+25) _output_logits: torch.Size([160, 39])
+26) loss: torch.Size([])
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from models.multihead_attention import MultiHead_Masked_SelfAttention
 
-"""
-1) x: torch.Size([128, 8])
-2) src: torch.Size([128, 7]) and tgt: torch.Size([128, 7])
-3) word_embed: torch.Size([128, 7, 64])
-4) position_embeddings: torch.Size([1, 7, 64])
-5) embedding_dropout: torch.Size([128, 7, 64])
-6) decoders: torch.Size([128, 7, 64])
-7) layer_norm: torch.Size([128, 7, 64])
-8) logits: torch.Size([128, 7, 39])
-9) _tgt: torch.Size([896])
-10) _output_logits: torch.Size([896, 39])
-11) loss: torch.Size([896])
-
-
-1) x: torch.Size([128, 12])
-2) src: torch.Size([128, 11]) and tgt: torch.Size([128, 11])
-3) word_embed: torch.Size([128, 11, 64])
-4) position_embeddings: torch.Size([1, 11, 64])
-5) embedding_dropout: torch.Size([128, 11, 64])
-6) decoders: torch.Size([128, 11, 64])
-7) layer_norm: torch.Size([128, 11, 64])
-8) logits: torch.Size([128, 11, 39])
-9) _tgt: torch.Size([1408])
-10) _output_logits: torch.Size([1408, 39])
-11) loss: torch.Size([1408])
-"""
 
 class Decoder(nn.Module):
     def __init__(self, embed_dim=512, num_heads=8, block_size=128, attention_dropout_rate=0.1, residual_dropout_rate=0.1, expand_ratio=4):
@@ -45,13 +62,18 @@ class Decoder(nn.Module):
 
     def forward(self, x):
         res1 = x
+        #print(f"6) Decoder Input: {x.shape}")
         x = self.layer_norm1(x)
+        #print(f"7) Decoder Layer Norm1: {x.shape}")
         x = self.MH_attention(x)
+        #print(f"18) Multi-Head Layer Output: {x.shape}")
         x = x + res1
 
         res2 = x
         x = self.layer_norm2(x)
+        #print(f"19) Decoder Layer Norm2: {x.shape}")
         x = self.feed_forward(x)
+        #print(f"20) Decoder Layer Output: {x.shape}")
         x = x + res2
 
         return x
@@ -80,7 +102,7 @@ class GPT3(nn.Module):
 
 
     def forward(self, x):
-
+        #print(f"len vocab.word2id: {len(self.vocab.word2id)}")
         # pre-process
         #print(f"1) x: {x.shape}")
         src = x[:, :-1]  # remove end symbol
@@ -96,19 +118,19 @@ class GPT3(nn.Module):
         x = self.embedding_dropout(token_embeddings + position_embeddings)
         #print(f"5) embedding_dropout: {x.shape}")
         x = self.decoders(x)
-        #print(f"6) decoders: {x.shape}")
+        #print(f"21) Decoder Layer Output: {x.shape}")
         x = self.layer_norm(x)
-        #print(f"7) layer_norm: {x.shape}")
+        #print(f"22) layer_norm: {x.shape}")
         logits = self.head(x)
-        #print(f"8) logits: {logits.shape}")
+        #print(f"23) logits: {logits.shape}")
 
         _tgt = tgt.contiguous().view(-1)
-        #print(f"9) _tgt: {_tgt.shape}")
+        #print(f"24) _tgt: {_tgt.shape}")
         _output_logits = logits.view(-1, logits.size(-1))
-        #print(f"10) _output_logits: {_output_logits.shape}")
+        #print(f"25) _output_logits: {_output_logits.shape}")
         # calculate the loss
         loss = F.cross_entropy(_output_logits, _tgt)
-        #print(f"11) loss: {loss.shape}")
+        #print(f"26) loss: {loss.shape}")
 
         return loss, self.accuracy(logits, tgt), logits
 
