@@ -10,7 +10,7 @@ matplotlib.use('Agg')
 
 #### DON'T FORGET TO CHANGE THIS !!! ####
 logger_file_name = 'experiment0'              # Add ExpNUMBER !!!         
-logger_folder_name = 'EXPERIMENTS/exp0'       # Add ExpNUMBER !!!
+logger_folder_name = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/EXPERIMENTS/exp0'       # Add ExpNUMBER !!!
 #########################################
 
 
@@ -37,7 +37,7 @@ args = parser.parse_args()
 
 # training info
 args.batchsize = 32
-args.epochs = 10
+args.epochs = 1
 args.opt= 'WAdam'
 args.lr = 0.001
 args.weight_decay = 0.01
@@ -56,24 +56,24 @@ logger.info("Weight Decay: {}".format(args.weight_decay))
 # data
 #args.trndata = '/home/emrecan/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Linux
 #args.valdata = '/home/emrecan/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Linux
-#args.trndata = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Mac
-#args.valdata = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Mac
-args.trndata = '/kuacc/users/eacikgoz17/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Cluster
-args.valdata = '/kuacc/users/eacikgoz17/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Cluster
+args.trndata = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Mac
+args.valdata = '/Users/emrecanacikgoz/Desktop/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Mac
+#args.trndata = '/kuacc/users/eacikgoz17/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.trn.txt' # Cluster
+#args.valdata = '/kuacc/users/eacikgoz17/NLP/Turkish_Morphology/charLM/data/surf.uniquesurfs.val.txt' # Cluster
 args.tstdata = args.valdata
 args.surface_vocab_file = args.trndata
 #args.maxtrnsize = 57769; args.maxvalsize = 10000; args.maxtstsize = 10000
-args.maxtrnsize = 5; args.maxvalsize = 5; args.maxtstsize = 5
+args.maxtrnsize = 5000; args.maxvalsize = 5; args.maxtstsize = 5
 rawdata, batches, vocab = build_data(args)
 trndata, vlddata, tstdata = rawdata
 args.trnsize , args.valsize, args.tstsize = len(trndata), len(vlddata), len(trndata)
 
 # model
 args.mname = 'charlm_miniGPT'
-num_layers=3
+num_layers=1
 embed_dim=128
 num_heads=16
-block_size=128
+block_size=32
 embedding_dropout_rate=0.15 
 attention_dropout_rate=0.15
 residual_dropout_rate=0.15

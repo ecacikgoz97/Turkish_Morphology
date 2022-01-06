@@ -26,7 +26,8 @@ def train(data, logger, args):
             args.model.zero_grad()
             # (batchsize, t)
             surf = trnbatches[idx]
-
+            print(f"Lenght of batch: {surf.shape}")
+            #print(surf) # DEBUGGER ADDED !!!
             loss, _acc, _ = args.model(surf)
             batch_loss = loss.sum() #mean(dim=-1)
             batch_loss.backward()
